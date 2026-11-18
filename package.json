@@ -1,0 +1,23 @@
+{
+  "name": "drive-download-helper",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Cloud Run service that rebuilds public Google Drive PDF previews as downloadable PDFs",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "convert": "node src/cli.js",
+    "test": "node --test test/*.test.js",
+    "test:live": "node --test test/live.js",
+    "check": "node --check src/server.js && node --check src/converter.js && node --check src/viewer.js && node --check public/app.js && node --check public/workspace.js && node --check public/workspace-settings.js",
+    "test:browser": "node --test test/*.browser.js"
+  },
+  "dependencies": {
+    "express": "5.3.0",
+    "pdf-lib": "1.17.1",
+    "playwright": "1.65.1"
+  }
+}

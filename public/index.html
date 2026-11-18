@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en" data-theme="midday">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#dceaf0">
+  <meta name="description" content="Your document workspace, with a little personality. Turn a public Google Drive PDF link into a PDF with Hummingbird Publishers.">
+  <title>Hummingbird — Your document workspace</title>
+  <link rel="icon" href="/assets/images/hummingbird-logo.png" type="image/png">
+  <link rel="preload" href="/assets/fonts/unbounded-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/instrument-serif-italic-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/caveat-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/assets/styles.css">
+  <script type="module" src="/assets/app.js"></script>
+  <script type="module" src="/assets/workspace.js"></script>
+</head>
+<body>
+  <div class="atmosphere" aria-hidden="true"><span class="orb orb-cyan"></span><span class="orb orb-orange"></span><span class="orb orb-pearl"></span><div class="grid-plane"></div></div>
+
+  <header class="island-bar">
+    <a class="brand-island glass" href="/" aria-label="Hummingbird Publishers home">
+      <span class="logo-tile"><img src="/assets/images/hummingbird-logo.png" alt="Hummingbird logo" width="54" height="54"></span>
+      <span class="brand-name">hummingbird<span>PUBLISHERS</span></span>
+    </a>
+
+    <div class="time-island glass">
+      <img id="time-avatar" src="/assets/images/avatar-midday.svg" alt="Midday sun avatar" width="48" height="48">
+      <div><span id="time-label">Midday energy</span><time id="local-clock">Nairobi · EAT</time></div>
+    </div>
+
+    <button id="open-preferences" class="preferences-trigger glass" type="button" aria-label="Make it yours" aria-haspopup="dialog" aria-controls="preferences-dialog">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M4 7h7m6 0h3M4 17h3m6 0h7M11 4v6M7 14v6M17 4v6M13 14v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span>Make it yours</span>
+    </button>
+  </header>
+
+  <main>
+    <section class="page-intro" aria-labelledby="page-title">
+      <p class="eyebrow"><span aria-hidden="true">✳</span> YOUR DOCUMENT WORKSPACE</p>
+      <h1 id="page-title">A Drive link.<br><span>A PDF to keep.</span></h1>
+      <p id="personal-message" class="personal-message">A little less admin. A little more room for your ideas.</p>
+    </section>
+
+    <div class="converter-card glass">
+      <div class="card-topline"><span><span class="status-dot" aria-hidden="true"></span>LINK → DOCUMENT</span><span class="file-label">.PDF</span></div>
+      <form id="convert-form" novalidate>
+        <label for="drive-url">Google Drive document link</label>
+        <div class="input-wrap">
+          <svg class="link-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="m10 14 4-4m-6.5 5.5-1 1a3.54 3.54 0 0 1-5-5l4-4a3.54 3.54 0 0 1 5 0m3 1 1-1a3.54 3.54 0 0 1 5 5l-4 4a3.54 3.54 0 0 1-5 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <input id="drive-url" name="url" type="url" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" required placeholder="Drop your https://drive.google.com/… link here" aria-describedby="url-hint field-error">
+          <button id="clear-link" type="button" aria-label="Clear document link" hidden>Clear</button>
+        </div>
+        <p id="field-error" class="field-error" role="alert" hidden></p>
+        <p id="url-hint" class="hint">Use a PDF that anyone with the link can view.</p>
+
+        <details id="access-settings" hidden>
+          <summary>Access key required</summary>
+          <label for="access-key">Access key</label>
+          <input id="access-key" type="password" autocomplete="off" placeholder="Enter your access key">
+        </details>
+
+        <button id="submit-button" class="primary-button" type="submit">
+          <span id="button-label">Generate PDF</span>
+          <span class="button-arrow" aria-hidden="true">↗</span>
+        </button>
+      </form>
+
+      <section id="result" class="result" aria-live="polite" aria-atomic="true" hidden>
+        <div class="result-heading"><h2 id="result-title"></h2><button id="cancel-button" type="button" hidden>Cancel</button></div>
+        <p id="result-description"></p>
+        <p id="elapsed" class="hint" aria-hidden="true" hidden></p>
+        <a id="download-link" hidden>Download PDF</a>
+      </section>
+
+      <div class="document-note"><span aria-hidden="true">ⓘ</span><p>Pages are saved as images. Text won’t be searchable.</p></div>
+    </div>
+
+    <div class="mood-caption"><span aria-hidden="true"></span><span id="theme-caption">In step with your day</span><span class="caption-separator">/</span><span>NAIROBI, KE</span></div>
+
+    <footer>
+      <section class="quote-card" aria-label="A little desk wisdom">
+        <div class="quote-toolbar"><span>A LITTLE DESK WISDOM</span><div class="quote-navigation"><span id="quote-count">01 / 06</span><button id="previous-quote" type="button" aria-label="Previous quote">←</button><button id="next-quote" type="button" aria-label="Next quote">→</button></div></div>
+        <blockquote><p id="quote-text">I have a filing system. It’s called ‘Downloads’.</p><cite id="quote-author">The Hummingbird desk</cite></blockquote>
+      </section>
+      <div class="ownership"><span>Property of Hummingbird Publishers</span><span class="footer-colours" aria-hidden="true"><i></i><i></i></span></div>
+    </footer>
+  </main>
+
+  <dialog id="preferences-dialog" aria-labelledby="preferences-title">
+    <div class="dialog-heading"><div><p class="eyebrow">YOUR SPACE, YOUR WAY</p><h2 id="preferences-title">Make it yours.</h2></div><button id="close-preferences" type="button" aria-label="Close preferences">×</button></div>
+    <form id="preferences-form">
+      <fieldset class="theme-fieldset"><legend>Light &amp; mood</legend><p class="setting-help">Auto follows Nairobi time. Preview any mood whenever you like.</p>
+        <div class="theme-options">
+          <label><input type="radio" name="theme" value="auto" checked><span><i class="swatch swatch-auto"></i>Auto</span></label>
+          <label><input type="radio" name="theme" value="morning"><span><i class="swatch swatch-morning"></i>Morning</span></label>
+          <label><input type="radio" name="theme" value="midday"><span><i class="swatch swatch-midday"></i>Midday</span></label>
+          <label><input type="radio" name="theme" value="afternoon"><span><i class="swatch swatch-afternoon"></i>Afternoon</span></label>
+        </div>
+      </fieldset>
+      <fieldset><legend>Your daily messages</legend><p class="setting-help">A small note to meet you at each part of the day.</p>
+        <label for="message-morning">Morning <span>05:00–11:59</span></label><textarea id="message-morning" name="message-morning" rows="2" maxlength="160"></textarea>
+        <label for="message-midday">Midday <span>12:00–14:59</span></label><textarea id="message-midday" name="message-midday" rows="2" maxlength="160"></textarea>
+        <label for="message-afternoon">Afternoon &amp; after hours <span>15:00–04:59</span></label><textarea id="message-afternoon" name="message-afternoon" rows="2" maxlength="160"></textarea>
+      </fieldset>
+      <fieldset><legend>A quote from your desk</legend><p class="setting-help">Optional. Your own quote joins the footer collection.</p>
+        <label for="custom-quote">Quote</label><textarea id="custom-quote" name="custom-quote" rows="2" maxlength="220" placeholder="Your words of wisdom (or office humour)…"></textarea>
+        <label for="quote-author-input">Author</label><input id="quote-author-input" name="quote-author" type="text" maxlength="60" placeholder="Your name, or your desk’s alter ego">
+      </fieldset>
+      <p id="preference-notice" class="setting-help" role="status"></p>
+      <div class="dialog-actions"><button id="reset-preferences" type="button">Reset defaults</button><button class="primary-button" type="submit">Save changes <span aria-hidden="true">↗</span></button></div>
+      <p class="storage-note">Saved in this browser. No account needed.</p>
+    </form>
+  </dialog>
+  <p id="settings-feedback" class="visually-hidden" role="status"></p>
+</body>
+</html>
