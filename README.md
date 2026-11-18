@@ -67,9 +67,11 @@ The floating logo and frosted glass interface use Hummingbird’s orange and cya
 | Midday | 12:00–14:59 | Balanced cyan and pearl |
 | Afternoon / after hours | 15:00–04:59 | Softer, muted blue and warm orange |
 
-Select **Make it yours** to preview a mood, edit the three daily messages, or add your own footer quote and author. **Auto** follows the clock and updates while the page is open. Preferences are saved in the current browser; **Reset defaults** restores the automatic palette and original messages. Browser storage errors fall back to defaults or apply settings for the current visit.
+The simplified interface keeps the preferences button and daily messages hidden. Existing saved preferences still apply, and **Auto** follows Nairobi time while the page is open. Preferences are saved in the current browser. Browser storage errors fall back to defaults or apply settings for the current visit.
 
-Footer quotes use Instrument Serif, with Caveat for author names. The included office humour was written for this tool and is credited to “The Hummingbird desk”, rather than attributed to historical figures. Use the arrow controls to change quotes. Display text uses Unbounded and Space Grotesk. Fonts are served locally from `public/fonts/`, with their SIL Open Font License files included. The supplied logo is retained unchanged in `public/images/hummingbird-logo.png`.
+The workspace fits the viewport without page scrolling, with a two-column layout on short landscape screens. Footer quotes rotate every 10 seconds with a gentle transition. Hovering over the quotes, focusing their controls, opening preferences, or switching tabs pauses rotation; the pause button also lets you stop it manually. Arrow controls move between quotes, and reduced-motion preferences disable the transition.
+
+Footer quotes use Instrument Serif, with Caveat for author names. The included office humour was written for this tool and is credited to “The Hummingbird desk”, rather than attributed to historical figures. Display text uses Unbounded and Space Grotesk. Fonts are served locally from `public/fonts/`, with their SIL Open Font License files included. The supplied logo is retained unchanged in `public/images/hummingbird-logo.png`.
 
 To change defaults for everyone, edit `public/workspace-settings.js`; saved browser preferences take priority until reset.
 

@@ -7,6 +7,21 @@ let quoteIndex = 0;
 const dialog = byId('preferences-dialog');
 const editor = byId('preferences-form');
 const notice = byId('preference-notice');
+const quoteCard = document.querySelector('.quote-card');
+const quoteToggle = byId('toggle-quotes');
+const quoteInterval = 10_000;
+let quoteTimer;
+let quotesPaused = false;
+let quoteRendered = false;
+
+function scheduleQuote() {
+  clearTimeout(quoteTimer);
+  if (quotesPaused || document.hidden || dialog.open || quoteCard.matches(':hover, :focus-within')) return;
+  quoteTimer = setTimeout(() => {
+    quoteIndex++;
+    renderQuote();
+  }, quoteInterval);
+}
 
 function quoteList() {
   return preferences.quote.text ? [preferences.quote, ...DESK_QUOTES] : DESK_QUOTES;
@@ -19,6 +34,16 @@ function renderQuote() {
   byId('quote-text').textContent = quote.text;
   byId('quote-author').textContent = quote.author;
   byId('quote-count').textContent = `${String(quoteIndex + 1).padStart(2, '0')} / ${String(quotes.length).padStart(2, '0')}`;
+  const blockquote = quoteCard.querySelector('blockquote');
+  blockquote.getAnimations().forEach(animation => animation.cancel());
+  if (quoteRendered && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    blockquote.animate([
+      { opacity: 0, transform: 'translateY(6px)' },
+      { opacity: 1, transform: 'translateY(0)' },
+    ], { duration: 350, easing: 'ease-out' });
+  }
+  quoteRendered = true;
+  scheduleQuote();
 }
 
 function renderTime() {
@@ -61,7 +86,9 @@ function savePreferences(next) {
 byId('open-preferences').addEventListener('click', () => {
   fillEditor();
   dialog.showModal();
+  scheduleQuote();
 });
+dialog.addEventListener('close', scheduleQuote);
 byId('close-preferences').addEventListener('click', () => dialog.close());
 dialog.addEventListener('click', event => {
   if (event.target !== dialog) return;
@@ -89,11 +116,22 @@ byId('reset-preferences').addEventListener('click', () => {
 });
 byId('previous-quote').addEventListener('click', () => { quoteIndex--; renderQuote(); });
 byId('next-quote').addEventListener('click', () => { quoteIndex++; renderQuote(); });
+quoteToggle.addEventListener('click', () => {
+  quotesPaused = !quotesPaused;
+  quoteToggle.setAttribute('aria-pressed', String(quotesPaused));
+  quoteToggle.setAttribute('aria-label', quotesPaused ? 'Resume automatic quotes' : 'Pause automatic quotes');
+  quoteToggle.firstElementChild.textContent = quotesPaused ? '▶' : 'Ⅱ';
+  scheduleQuote();
+});
+quoteCard.addEventListener('pointerenter', () => clearTimeout(quoteTimer));
+quoteCard.addEventListener('pointerleave', scheduleQuote);
+quoteCard.addEventListener('focusin', () => clearTimeout(quoteTimer));
+quoteCard.addEventListener('focusout', () => queueMicrotask(scheduleQuote));
+document.addEventListener('visibilitychange', scheduleQuote);
 
 renderTime();
 renderQuote();
 setInterval(renderTime, 30_000);
-// Quotes change on request so they never move while someone is reading.
 window.addEventListener('storage', event => {
   if (event.key !== STORAGE_KEY && event.key !== null) return;
   try { preferences = normalizePreferences(JSON.parse(event.newValue || 'null')); } catch { preferences = normalizePreferences(); }

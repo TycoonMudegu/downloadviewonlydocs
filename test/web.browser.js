@@ -42,6 +42,8 @@ test('validates links, shows processing and downloads the generated PDF', async 
     await new Promise(resolve => { release = resolve; started(); });
     return fixture;
   });
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.getByRole('button', { name: 'Generate PDF', exact: true }).click();
   await page.locator('#field-error').waitFor({ state: 'visible' });
   assert.equal(calls, 0);
@@ -51,6 +53,7 @@ test('validates links, shows processing and downloads the generated PDF', async 
   assert.equal(await page.locator('#drive-url').isDisabled(), true);
   await page.waitForFunction(() => document.querySelector('#cancel-button').hidden === false);
   await ready;
+  await assertFitsViewport(page, ['#drive-url', '#submit-button', '#cancel-button', '#quote-text', '#quote-author', '.ownership']);
   const downloadEvent = page.waitForEvent('download');
   release();
   const download = await downloadEvent;
@@ -105,7 +108,8 @@ test('shows an access-key field only when required and works on a narrow screen'
   const fixture = await makePdf();
   let calls = 0;
   const page = await serve(t, async () => { calls++; return fixture; }, { API_KEY: 'office-key' });
-  await page.setViewportSize({ width: 375, height: 812 });
+  await page.setViewportSize({ width: 375, height: 667 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.locator('#access-settings').waitFor({ state: 'visible' });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
   await page.getByLabel('Google Drive document link', { exact: true }).fill('https://drive.google.com/file/d/1ttNvzuQbHUnABVcP-TAoix8-TVmehYph/view');
@@ -117,6 +121,11 @@ test('shows an access-key field only when required and works on a narrow screen'
   await page.getByRole('button', { name: 'Generate PDF', exact: true }).click();
   await downloaded;
   assert.equal(calls, 1);
+  await page.locator('#result[data-state=ready]').waitFor();
+  for (const viewport of [{ width: 1366, height: 768 }, { width: 375, height: 667 }, { width: 320, height: 568 }]) {
+    await page.setViewportSize(viewport);
+    await assertFitsViewport(page, ['#drive-url', '#access-key', '#submit-button', '#download-link', '#quote-text', '#quote-author', '.ownership']);
+  }
 });
 
 test('time-based themes, personalised messages and custom quotes persist and reset', async t => {
@@ -125,7 +134,9 @@ test('time-based themes, personalised messages and custom quotes persist and res
   await page.clock.install({ time: new Date('2026-11-18T03:00:00Z') });
   await page.reload();
   await page.waitForFunction(() => document.documentElement.dataset.theme === 'morning');
-  await page.getByRole('button', { name: 'Make it yours', exact: true }).click();
+  // The owner has hidden the editor entry point; retain coverage of saved preferences.
+  assert.equal(await page.locator('#open-preferences').isVisible(), false);
+  await page.locator('#open-preferences').dispatchEvent('click');
   await page.getByRole('radio', { name: 'Afternoon', exact: true }).check();
   await page.locator('#message-afternoon').fill('Good work, <script>bad()</script>');
   await page.getByLabel('Quote', { exact: true }).fill('My custom desk wisdom.');
@@ -141,7 +152,7 @@ test('time-based themes, personalised messages and custom quotes persist and res
   assert.equal(await page.locator('html').getAttribute('data-theme'), 'afternoon');
   await page.getByRole('button', { name: 'Next quote', exact: true }).click();
   assert.notEqual(await page.locator('#quote-text').innerText(), 'My custom desk wisdom.');
-  await page.getByRole('button', { name: 'Make it yours', exact: true }).click();
+  await page.locator('#open-preferences').dispatchEvent('click');
   await page.getByRole('button', { name: 'Reset defaults', exact: true }).click();
   await page.getByRole('button', { name: 'Close preferences', exact: true }).click();
   assert.equal(await page.locator('html').getAttribute('data-theme'), 'morning');
@@ -160,4 +171,90 @@ test('automatic palette updates across morning, midday and afternoon while the p
   await page.clock.runFor(30_000);
   assert.equal(await page.locator('html').getAttribute('data-theme'), 'afternoon');
   assert.match(await page.locator('#time-avatar').getAttribute('src'), /afternoon/);
+});
+
+async function assertFitsViewport(page, selectors) {
+  const dimensions = await page.evaluate(() => ({
+    width: innerWidth,
+    height: innerHeight,
+    scrollWidth: document.documentElement.scrollWidth,
+    scrollHeight: document.documentElement.scrollHeight,
+  }));
+  assert.ok(dimensions.scrollWidth <= dimensions.width, 'the document must not overflow horizontally');
+  assert.ok(dimensions.scrollHeight <= dimensions.height, 'the document must not overflow vertically');
+  for (const selector of selectors) {
+    const bounds = await page.locator(selector).boundingBox();
+    assert.ok(bounds && bounds.width > 0 && bounds.height > 0, `${selector} must be visible`);
+    assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= dimensions.width + 1, `${selector} must fit horizontally`);
+    assert.ok(bounds.y >= 0 && bounds.y + bounds.height <= dimensions.height + 1, `${selector} must fit vertically`);
+  }
+  const quoteFits = await page.locator('blockquote').evaluate(element => element.scrollHeight <= element.clientHeight + 1);
+  assert.ok(quoteFits, `the current quote must fit without its own scrollbar at ${dimensions.width}×${dimensions.height}`);
+  await page.mouse.wheel(0, 1000);
+  assert.equal(await page.evaluate(() => scrollY), 0, 'the page must not scroll');
+}
+
+test('form, results and quotes fit desktop, mobile and landscape screens without page scrolling', async t => {
+  const fixture = await makePdf();
+  const page = await serve(t, async () => fixture);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  for (const viewport of [
+    { width: 1440, height: 900 },
+    { width: 1366, height: 768 },
+    { width: 390, height: 844 },
+    { width: 375, height: 667 },
+    { width: 320, height: 568 },
+    { width: 844, height: 390 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.reload();
+    await page.evaluate(() => document.fonts.ready);
+    const selectors = ['.brand-island', '.time-island', '#drive-url', '#submit-button', '.quote-navigation', '#quote-text', '#quote-author', '.ownership'];
+    await assertFitsViewport(page, selectors);
+    await page.locator('#drive-url').fill('https://drive.google.com/file/d/1ttNvzuQbHUnABVcP-TAoix8-TVmehYph/view');
+    const downloaded = page.waitForEvent('download');
+    await page.locator('#submit-button').click();
+    await downloaded;
+    await page.locator('#result[data-state=ready]').waitFor();
+    await assertFitsViewport(page, [...selectors, '#download-link']);
+  }
+});
+
+test('quotes rotate automatically and pause for reading and the pause control', async t => {
+  const page = await serve(t, async () => makePdf());
+  await page.clock.install();
+  await page.reload();
+  await page.mouse.move(0, 0);
+  await page.waitForFunction(() => document.querySelector('#quote-count').textContent === '01 / 06');
+  await page.clock.runFor(10_000);
+  assert.equal(await page.locator('#quote-count').textContent(), '02 / 06');
+
+  await page.locator('#quote-text').hover();
+  await page.clock.runFor(20_000);
+  assert.equal(await page.locator('#quote-count').textContent(), '02 / 06');
+  await page.mouse.move(0, 0);
+  await page.clock.runFor(10_000);
+  assert.equal(await page.locator('#quote-count').textContent(), '03 / 06');
+
+  await page.getByRole('button', { name: 'Pause automatic quotes', exact: true }).click();
+  await page.locator('#drive-url').focus();
+  await page.mouse.move(0, 0);
+  await page.clock.runFor(30_000);
+  assert.equal(await page.locator('#quote-count').textContent(), '03 / 06');
+  await page.getByRole('button', { name: 'Resume automatic quotes', exact: true }).click();
+  await page.locator('#drive-url').focus();
+  await page.mouse.move(0, 0);
+  await page.clock.runFor(10_000);
+  assert.equal(await page.locator('#quote-count').textContent(), '04 / 06');
+
+  await page.getByRole('button', { name: 'Next quote', exact: true }).click();
+  assert.equal(await page.locator('#quote-count').textContent(), '05 / 06');
+  await page.locator('#drive-url').focus();
+  await page.mouse.move(0, 0);
+  await page.clock.runFor(9_000);
+  assert.equal(await page.locator('#quote-count').textContent(), '05 / 06');
+  await page.clock.runFor(1_000);
+  assert.equal(await page.locator('#quote-count').textContent(), '06 / 06');
+  await page.clock.runFor(10_000);
+  assert.equal(await page.locator('#quote-count').textContent(), '01 / 06');
 });
